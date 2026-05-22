@@ -46,12 +46,9 @@ $payment_data = [
     "payer" => ["email" => $data['email']]
 ];
 
-// Lógica PIX
-if ($payment_method_id === 'pix') {
-    // O Mercado Pago cancela automaticamente após 1 hora
-    $payment_data['date_of_expiration'] = date('Y-m-d\TH:i:s.000P', strtotime('+1 hour'));
-}
-else {
+if ($data['payment_method_id'] === 'pix') {
+    $payment_data['date_of_expiration'] = date('Y-m-d\TH:i:s.000P', strtotime('+30 minutes'));
+} else {
     if (!isset($data['token'])) {
         echo json_encode(['error' => 'Token do cartão é obrigatório']);
         exit();
