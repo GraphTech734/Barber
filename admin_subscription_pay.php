@@ -51,7 +51,8 @@ $payment_data = [
 
 // Lógica PIX
 if ($payment_method_id === 'pix') {
-    $payment_data['date_of_expiration'] = date('Y-m-d\TH:i:s.000P', strtotime('+30 minutes'));
+    // Mercado Pago cancelará o PIX automaticamente após 1 hora
+    $payment_data['date_of_expiration'] = date('Y-m-d\TH:i:s.000P', strtotime('+1 hour'));
 } 
 // Lógica Cartão
 else {
