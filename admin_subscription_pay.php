@@ -33,7 +33,7 @@ if (empty($data)) {
 // Dados comuns
 $email = $data['email'];
 $amount = (float) $data['amount'];
-$description = $data['description'] ?? 'Mensalidade App';
+$description = $data['description'] ?? 'Mensalidade App Admin';
 $payment_method_id = $data['payment_method_id']; 
 
 $payment_data = [
@@ -42,10 +42,9 @@ $payment_data = [
     "payment_method_id" => $payment_method_id,
     "payer" => [
         "email" => $email,
-        "first_name" => "Admin",
-        "last_name" => "User"
+        "first_name" => "Admin"
     ],
-    // --- URL ATUALIZADA PARA O SEU NOVO SERVIDOR RENDER ---
+    // --- URL PARA O SEU WEBHOOK ---
     "notification_url" => "https://barber-5k9d.onrender.com/webhook_mercadopago.php" 
 ];
 
@@ -53,19 +52,30 @@ $payment_data = [
 if ($payment_method_id === 'pix') {
     $payment_data['date_of_expiration'] = date('Y-m-d\TH:i:s.000P', strtotime('+30 minutes'));
 } 
-// Lógica Cartão
+// Lógica Cartão (Crédito, Débito e Cartão Salvo)
 else {
-    if (empty($data['token'])) {
-        echo json_encode(['status' => 'error', 'message' => 'Token do cartão obrigatório']);
+    // Se enviou o token (novo cartão)
+    if (!empty($data['token'])) {
+        $payment_data['token'] = $data['token'];
+    } elseif (empty($data['customer_id'])) {
+        // Se não tem token e não tem customer_id, rejeita
+        echo json_encode(['status' => 'error', 'message' => 'Token do cartão ou ID do Cliente obrigatório.']);
         exit;
     }
-    $payment_data['token'] = $data['token'];
+
+    // Se estiver usando um cartão salvo (enviou customer_id)
+    if (!empty($data['customer_id'])) {
+        $payment_data['payer']['id'] = $data['customer_id'];
+        $payment_data['payer']['type'] = 'customer';
+    }
+
     $payment_data['installments'] = (int) ($data['installments'] ?? 1);
     
+    // Tratamento do CPF (limpando a máscara)
     if (!empty($data['docNumber'])) {
         $payment_data['payer']['identification'] = [
             "type" => "CPF",
-            "number" => $data['docNumber']
+            "number" => preg_replace('/\D/', '', $data['docNumber'])
         ];
     }
 }
