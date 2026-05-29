@@ -11,7 +11,7 @@ use Google\Auth\Credentials\ServiceAccountCredentials;
 date_default_timezone_set('America/Sao_Paulo');
 
 // --- SEGURANÇA: IMPEDE ACESSO NÃO AUTORIZADO PELA URL ---
-// Quando for configurar o robô (cron), você usará a URL: 
+// Quando for configurar o robô (cron), você usará a URL.: 
 // https://barber-5k9d.onrender.com/cron_lembretes.php?token=SEGREDO123
 $tokenAcesso = $_GET['token'] ?? '';
 if ($tokenAcesso !== 'SEGREDO123') {
