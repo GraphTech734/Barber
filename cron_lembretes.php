@@ -91,12 +91,19 @@ foreach ($documents as $doc) {
         $tokenCliente = buscarTokenUsuarioREST($agenda['userId'], $baseUrl, $accessToken);
     }
 
+    // --- VARIÁVEIS EXTRAS PARA NOTIFICAÇÕES PROFISSIONAIS ---
+    $serviceName = $agenda['serviceName'] ?? 'Atendimento';
+    $clientName = $agenda['userName'] ?? 'Cliente';
+    $profName = $agenda['professionalName'] ?? 'o profissional';
+    $horaAgendada = $agenda['time'];
+
     // --- REGRAS DE ENVIO ---
 
     // 1h (Cliente)
     if ($minutosRestantes >= 55 && $minutosRestantes <= 65) {
         if ($tokenCliente && empty($agenda['notified_client_1h'])) {
-            enviarPushFCM($tokenCliente, "Lembrete ✂️", "Seu corte é daqui a 1 hora!", $accessToken, $PROJECT_ID, "MyAppointmentsScreen");
+            // --- TEXTOS ATUALIZADOS ---
+            enviarPushFCM($tokenCliente, "Lembrete: $serviceName ✂️", "Falta 1 hora para o seu agendamento com $profName!", $accessToken, $PROJECT_ID, "MyAppointmentsScreen");
             atualizarFlagREST($id, 'notified_client_1h', $baseUrl, $accessToken);
             logMsg("1h Cliente enviado: $id");
             $processados++;
@@ -105,14 +112,16 @@ foreach ($documents as $doc) {
     // 30m (Cliente e Admin)
     elseif ($minutosRestantes >= 28 && $minutosRestantes <= 32) {
         if ($tokenCliente && empty($agenda['notified_client_30m'])) {
-            enviarPushFCM($tokenCliente, "Está chegando ⏰", "Faltam 30 minutos.", $accessToken, $PROJECT_ID, "MyAppointmentsScreen");
+            // --- TEXTOS ATUALIZADOS ---
+            enviarPushFCM($tokenCliente, "Está chegando! ⏰", "$profName aguarda você em 30 minutos para o seu $serviceName.", $accessToken, $PROJECT_ID, "MyAppointmentsScreen");
             atualizarFlagREST($id, 'notified_client_30m', $baseUrl, $accessToken);
             logMsg("30m Cliente enviado: $id");
             $processados++;
         }
         if (!empty($adminTokens) && empty($agenda['notified_admin_30m'])) {
             foreach($adminTokens as $admTk) {
-                enviarPushFCM($admTk, "Admin: 30min", "Cliente das " . $agenda['time'], $accessToken, $PROJECT_ID, "AdminAppointmentsScreen");
+                // --- TEXTOS ATUALIZADOS ---
+                enviarPushFCM($admTk, "Faltam 30 minutos ⏰", "$clientName tem um(a) $serviceName com $profName às $horaAgendada.", $accessToken, $PROJECT_ID, "AdminAppointmentsScreen");
             }
             atualizarFlagREST($id, 'notified_admin_30m', $baseUrl, $accessToken);
             $processados++;
@@ -122,7 +131,8 @@ foreach ($documents as $doc) {
     elseif ($minutosRestantes >= 13 && $minutosRestantes <= 17) {
         if (!empty($adminTokens) && empty($agenda['notified_admin_15m'])) {
             foreach($adminTokens as $admTk) {
-                enviarPushFCM($admTk, "Admin: 15min", "Prepare-se: " . $agenda['time'], $accessToken, $PROJECT_ID, "AdminAppointmentsScreen");
+                // --- TEXTOS ATUALIZADOS ---
+                enviarPushFCM($admTk, "Prepare-se! ✂️", "Em 15 minutos: $serviceName para $clientName (Profissional: $profName).", $accessToken, $PROJECT_ID, "AdminAppointmentsScreen");
             }
             atualizarFlagREST($id, 'notified_admin_15m', $baseUrl, $accessToken);
             $processados++;
@@ -131,14 +141,16 @@ foreach ($documents as $doc) {
     // 10m (Cliente e Admin)
     elseif ($minutosRestantes >= 8 && $minutosRestantes <= 12) {
         if ($tokenCliente && empty($agenda['notified_client_10m'])) {
-            enviarPushFCM($tokenCliente, "Corre! 🏃", "Seu barbeiro aguarda em 10 min.", $accessToken, $PROJECT_ID, "MyAppointmentsScreen");
+            // --- TEXTOS ATUALIZADOS ---
+            enviarPushFCM($tokenCliente, "Corre que dá tempo! 🏃", "$profName já está te aguardando para o seu $serviceName em 10 minutos.", $accessToken, $PROJECT_ID, "MyAppointmentsScreen");
             atualizarFlagREST($id, 'notified_client_10m', $baseUrl, $accessToken);
             logMsg("10m Cliente enviado: $id");
             $processados++;
         }
         if (!empty($adminTokens) && empty($agenda['notified_admin_10m'])) {
             foreach($adminTokens as $admTk) {
-                enviarPushFCM($admTk, "Admin: ATENÇÃO 10min", "Cliente chegando!", $accessToken, $PROJECT_ID, "AdminAppointmentsScreen");
+                // --- TEXTOS ATUALIZADOS ---
+                enviarPushFCM($admTk, "Atenção: 10 minutos! 🚨", "$clientName já deve estar chegando para o atendimento com $profName.", $accessToken, $PROJECT_ID, "AdminAppointmentsScreen");
             }
             atualizarFlagREST($id, 'notified_admin_10m', $baseUrl, $accessToken);
             $processados++;
